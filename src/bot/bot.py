@@ -1,17 +1,16 @@
 import time
-from pprint import pp
 from queue import Queue
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
-# from pprint import
+from pprint import pprint as pp
 
-from threading import Thread
+from threading import Thread, Lock
 
 
 class Bot:
     def __init__(self):
         self.res_queue = Queue()
-        # self.size = 0
+        self.size = 0
 
     def get_data(self, link_queue, size_lock):
         while not link_queue.empty():
@@ -24,20 +23,20 @@ class Bot:
             link_queue.task_done()
             self.res_queue.put(res)
 
-            # with self.size.get_lock():
-            #     self.size += 1
+            with size_lock:
+                self.size += 1
 
     def manage_threads(self, url, levels=1):
         start_queue = Queue()
+        size_lock = Lock()
         start_queue.put(url)
-        self.get_data(start_queue)
-
-        # size_lock = Lock()
+        self.get_data(start_queue, size_lock)
 
         start = time.perf_counter()
         # TODO create method for multiply run this code
         # TODO add comments(docstring), DRY, KISS, pylint
         for _ in range(levels):
+            pp(f'g_data {self.size}')
             link_queue = Queue()
 
             for urls in self.res_queue.get():
@@ -45,7 +44,7 @@ class Bot:
 
             num_thread = 10
             for _ in range(num_thread):
-                t = Thread(target=self.get_data, args=(link_queue,))
+                t = Thread(target=self.get_data, args=(link_queue, size_lock))
                 t.start()
 
             link_queue.join()
@@ -59,6 +58,7 @@ class Bot:
         end = time.perf_counter()
 
         print(f'Time {end - start}')
+        pp(f'd_data {self.size}')
 
     def manage_without_threads(self, url):
         start_queue = Queue()
