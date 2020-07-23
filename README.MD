@@ -1,4 +1,3 @@
-# Web Bot like Google Bot
+# Web Bot
 
-DOM - document Object Model
-AST - Abstract Syntax Tree
+## Objected python app for automatic searching websites.
